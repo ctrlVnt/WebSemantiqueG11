@@ -1,0 +1,64 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX schema: <http://schema.org/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX crime: <http://example.org/crime/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+CONSTRUCT {
+  ?person a foaf:Person , dbo:Criminal ;
+    foaf:name ?name ;
+    foaf:nick ?nickname ;
+    foaf:age ?age ;
+    schema:birthDate ?birthDate ;
+   schema:birthPlace ?birthPlace ;
+    schema:birthCity ?birthCity ;
+    schema:deathDate ?deathDate ;
+     schema:deathPlace ?deathPlace ;
+    schema:deathCity ?deathCity ;
+    crime:conviction ?conviction ;
+    crime:penalty ?penalty ;
+    crime:dateApprehended ?dateApprehended ;
+    owl:sameAs ?sameAs .
+}
+WHERE {
+  # Tarql lit automatiquement les colonnes du CSV
+  # Colonnes: Name, Nicknames, Age, Born Date, Born Location, etc.
+  
+  # Créer une URI unique pour chaque personne basée sur le nom
+  BIND (IRI(CONCAT("http://example.org/crime/person/", ENCODE_FOR_URI(?Name))) AS ?person)
+  
+  # Mapper les colonnes du CSV aux propriétés RDF
+  BIND (STR(?Name) AS ?name)
+  
+  # Nicknames (optionnel)
+  BIND (IF(BOUND(?Nicknames) && STR(?Nicknames) != "", STR(?Nicknames), ?unbound) AS ?nickname)
+  
+  #age
+  BIND (IF(BOUND(?Age), xsd:integer(xsd:decimal(?Age)), ?unbound) AS ?age)
+  
+  # Born Date (optionnel)
+  BIND (IF(BOUND(?Born_Date) && STR(?Born_Date) != "", STRDT(STR(?Born_Date), xsd:date), ?unbound) AS ?birthDate)
+  
+  # Born Location (optionnel)
+  BIND(IF(BOUND(?Born_Location) && STR(?Born_Location) != "", STR(?Born_Location), ?unbound) AS ?birthPlace)
+  BIND(IF(BOUND(?Born_Location) && STR(?Born_Location) != "",IRI(CONCAT("http://dbpedia.org/resource/", REPLACE(STRBEFORE(?Born_Location, ","), " ", "_"))),?unbound) AS ?birthCity)
+  
+  # Died Date (optionnel)
+  BIND (IF(BOUND(?Died_Date) && STR(?Died_Date) != "", STRDT(STR(?Died_Date), xsd:date), ?unbound) AS ?deathDate)
+  
+  # Died Location (optionnel)
+  BIND(IF(BOUND(?Died_Location) && STR(?Died_Location) != "", STR(?Died_Location), ?unbound) AS ?deathPlace)
+  BIND(IF(BOUND(?Died_Location) && STR(?Died_Location) != "",IRI(CONCAT("http://dbpedia.org/resource/", REPLACE(STRBEFORE(?Died_Location, ","), " ", "_"))),?unbound) AS ?deathCity)
+  
+  # Conviction (optionnel)
+  BIND (IF(BOUND(?Conviction) && STR(?Conviction) != "", STR(?Conviction), ?unbound) AS ?conviction)
+  
+  # Criminal Penalty (optionnel)
+  BIND (IF(BOUND(?Criminal_Penalty) && STR(?Criminal_Penalty) != "", STR(?Criminal_Penalty), ?unbound) AS ?penalty)
+  
+  # Date Apprehended (optionnel)
+  BIND (IF(BOUND(?Date_Apprehended) && STR(?Date_Apprehended) != "", STRDT(STR(?Date_Apprehended), xsd:date), ?unbound) AS ?dateApprehended)
+
+  BIND(IRI(CONCAT("http://dbpedia.org/resource/", REPLACE(?name, " ", "_"))) AS ?sameAs)
+}
