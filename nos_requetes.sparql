@@ -276,3 +276,38 @@ WHERE {
 }
 GROUP BY ?year
 ORDER BY DESC(?correspondances)
+
+
+# requêtes lien avec Groupe 6: World Population DataSet
+
+#--- Requête: Densité de population vs "Productivité criminelle"
+PREFIX schema: <http://schema.org/>
+PREFIX foaf: <http://foaf.org/0.1/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX crime: <http://example.org/crime/>
+PREFIX ex: <http://example.org/population/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?densityRange 
+       (COUNT(?criminal) as ?criminalCount)
+       (GROUP_CONCAT(DISTINCT ?countryName; separator=", ") as ?countries)
+WHERE {
+  ?criminal rdf:type dbo:Criminal ;
+            schema:birthPlace ?birthPlace .
+  
+  ?country rdf:type ex:Country ;
+           schema:name ?countryName ;
+           ex:density ?density .
+  
+  FILTER(CONTAINS(LCASE(?birthPlace), LCASE(?countryName)))
+  
+  # Catégoriser par tranche de densité
+  BIND(
+    IF(?density < 50, "Faible (<50)",
+    IF(?density < 150, "Moyenne (50-150)",
+    IF(?density < 500, "Élevée (150-500)",
+    "Très élevée (>500)"))) as ?densityRange
+  )
+}
+GROUP BY ?densityRange
+ORDER BY ?densityRange

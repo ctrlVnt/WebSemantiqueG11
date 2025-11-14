@@ -18,13 +18,9 @@ CONSTRUCT {
     crime:dateApprehended ?dateApprehended .
 }
 WHERE {
-  # Tarql lit automatiquement les colonnes du CSV
-  # Colonnes: Name, Nicknames, Age, Born Date, Born Location, etc.
   
-  # Créer une URI unique pour chaque personne basée sur le nom
   BIND (IRI(CONCAT("http://example.org/crime/person/", ENCODE_FOR_URI(?Name))) AS ?person)
   
-  # Mapper les colonnes du CSV aux propriétés RDF
   BIND (STR(?Name) AS ?name)
   
   # Nicknames (optionnel)
