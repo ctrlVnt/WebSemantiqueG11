@@ -535,7 +535,7 @@
         foaf:name              "Cedric Maake" ;
         foaf:nick              "The Wemmer Pan Killer" ;
         schema:birthPlace      "Maoupa Cedric MaakeSouth Africa" ;
-        schema:birthCity       <http://dbpedia.org/resource/> ;
+        schema:birthCity       <http://dbpedia.org/resource/Maoupa> ;
         crime:penalty          "1 340 years imprisonment" ;
         crime:dateApprehended  "1997-12-01"^^xsd:date ;
         owl:sameAs             <http://dbpedia.org/resource/Cedric_Maake> .
