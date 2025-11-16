@@ -1,0 +1,167 @@
+# REQUÊTES SPARQL SUR LA DESCRIPTION VOID
+
+# ============================================
+# REQUÊTE 1: Informations générales sur le dataset
+
+PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT ?title ?description ?creator ?license ?triples ?entities
+WHERE {
+  ?dataset a void:Dataset ;
+           dcterms:title ?title ;
+           dcterms:description ?description ;
+           dcterms:license ?license ;
+           void:triples ?triples ;
+           void:entities ?entities .
+  
+  OPTIONAL {
+    ?dataset dcterms:creator ?creatorNode .
+    ?creatorNode foaf:name ?creator .
+  }
+}
+
+# ============================================
+# REQUÊTE 2: Distribution des classes
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT ?className ?count
+WHERE {
+  ?dataset void:classPartition ?partition .
+  ?partition void:class ?class ;
+             void:entities ?count .
+  
+  BIND(STRAFTER(STR(?class), "#") AS ?className)
+  FILTER(?className != "")
+}
+ORDER BY DESC(?count)
+
+
+# ============================================
+# REQUÊTE 3: Distribution des propriétés
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT ?propertyName ?tripleCount
+WHERE {
+  ?dataset void:propertyPartition ?partition .
+  ?partition void:property ?property ;
+             void:triples ?tripleCount .
+  
+  BIND(STRAFTER(STR(?property), "/") AS ?temp)
+  BIND(IF(?temp = "", STRAFTER(STR(?property), "#"), ?temp) AS ?propertyName)
+}
+ORDER BY DESC(?tripleCount)
+LIMIT 20
+
+
+# ============================================
+# REQUÊTE 4: Vocabulaires utilisés
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT DISTINCT ?vocabulary
+WHERE {
+  ?dataset void:vocabulary ?vocabulary .
+}
+ORDER BY ?vocabulary
+
+
+# ============================================
+# REQUÊTE 5: Liens vers d'autres datasets (Linksets)
+
+PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?targetDataset ?linkPredicate ?numberOfLinks ?description
+WHERE {
+  ?linkset a void:Linkset ;
+           void:objectsTarget ?targetDataset ;
+           void:linkPredicate ?linkPredicate ;
+           void:triples ?numberOfLinks .
+  
+  OPTIONAL {
+    ?linkset dcterms:description ?description .
+  }
+}
+ORDER BY DESC(?numberOfLinks)
+
+
+# ============================================
+# REQUÊTE 6: Points d'accès au dataset
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT ?sparqlEndpoint ?dataDump ?lookupEndpoint
+WHERE {
+  ?dataset a void:Dataset .
+  
+  OPTIONAL { ?dataset void:sparqlEndpoint ?sparqlEndpoint . }
+  OPTIONAL { ?dataset void:dataDump ?dataDump . }
+  OPTIONAL { ?dataset void:uriLookupEndpoint ?lookupEndpoint . }
+}
+
+
+# ============================================
+# REQUÊTE 7: Statistiques complètes
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT ?triples ?entities ?distinctSubjects ?distinctObjects ?properties ?classes
+WHERE {
+  ?dataset a void:Dataset ;
+           void:triples ?triples ;
+           void:entities ?entities ;
+           void:distinctSubjects ?distinctSubjects ;
+           void:distinctObjects ?distinctObjects ;
+           void:properties ?properties ;
+           void:classes ?classes .
+}
+
+# ============================================
+# REQUÊTE 8: Couverture temporelle et géographique
+
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?spatialLabel ?startDate ?endDate ?temporalLabel
+WHERE {
+  ?dataset a void:Dataset .
+  
+  OPTIONAL {
+    ?dataset dcterms:spatial ?spatial .
+    ?spatial rdfs:label ?spatialLabel .
+  }
+  
+  OPTIONAL {
+    ?dataset dcterms:temporal ?temporal .
+    OPTIONAL { ?temporal rdfs:label ?temporalLabel . }
+    OPTIONAL { ?temporal schema:startDate ?startDate . }
+    OPTIONAL { ?temporal schema:endDate ?endDate . }
+  }
+}
+
+# ============================================
+# REQUÊTE 9: Provenance et sources
+
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT DISTINCT ?source
+WHERE {
+  ?dataset dcterms:source ?source .
+}
+
+# ============================================
+# REQUÊTE 10: Toutes les métadonnées d'un dataset
+
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT ?property ?value
+WHERE {
+  <http://example.org/crime/dataset> ?property ?value .
+}
+ORDER BY ?property
+
