@@ -1,0 +1,39 @@
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/crime/dataset> a void:Dataset ;
+    dcterms:title "Criminal Profiles Dataset"@en ;
+    dcterms:description "A semantic web dataset containing profiles of serial killers and criminals"@en ;
+    dcterms:creator "G11" ;
+    dcterms:created "2024-11-17"^^xsd:date ;
+    dcterms:license <http://creativecommons.org/licenses/by/4.0/> ;
+    
+    void:triples 5866 ;
+    void:entities 711 ;
+    void:properties 11 ;
+    void:distinctSubjects 711 ;
+    void:distinctObjects 3574 ;
+    
+    # Vocabulaires utilisés
+    void:vocabulary <http://example.org/crime/> ;
+    void:vocabulary <http://xmlns.com/foaf/0.1/> ;
+    void:vocabulary <http://schema.org/> ;
+    
+    # Point d'accès SPARQL
+    void:sparqlEndpoint <http://localhost:3030/Killers/query> ;
+    
+    # Exemple de ressource
+    void:exampleResource <http://example.org/crime/TedBundy> ;
+    
+    # Partitions par classe
+    void:classPartition [
+        void:class <http://example.org/crime/SerialKiller> ;
+        void:entities 50  
+    ] ;
+    
+    void:classPartition [
+        void:class <http://example.org/crime/Criminal> ;
+        void:entities 711
+    ] .
