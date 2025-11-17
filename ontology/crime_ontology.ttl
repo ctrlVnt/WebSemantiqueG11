@@ -1,0 +1,126 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix crime: <http://example.org/crime/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ============================================
+# DÉCLARATION DE L'ONTOLOGIE
+# ============================================
+
+<http://example.org/crime/ontology> a owl:Ontology ;
+    dcterms:title "Criminal Ontology"@en ;
+    dcterms:created "2024-11-16"^^xsd:date ;
+    owl:versionInfo "1.0" .
+
+# Classe : Criminal (Criminel)
+crime:Criminal a owl:Class ;
+    rdfs:label "Criminal"@en , "Criminel"@fr ;
+    rdfs:comment "Une personne qui a commis un crime"@fr ;
+    rdfs:subClassOf foaf:Person .
+
+# Classe : SerialKiller (Tueur en série)
+crime:SerialKiller a owl:Class ;
+    rdfs:label "Serial Killer"@en , "Tueur en série"@fr ;
+    rdfs:subClassOf crime:Criminal ;
+    rdfs:comment "Un criminel qui a tué plusieurs personnes"@fr .
+
+# Classe : ViolentCriminal
+crime:ViolentCriminal a owl:Class ;
+    rdfs:label "Violent Criminal"@en , "Criminel violent"@fr ;
+    rdfs:subClassOf crime:Criminal .
+
+# Classe : Conviction (Condamnation)
+crime:Conviction a owl:Class ;
+    rdfs:label "Conviction"@en , "Condamnation"@fr .
+
+# Classe : Penalty (Peine)
+crime:Penalty a owl:Class ;
+    rdfs:label "Penalty"@en , "Peine"@fr .
+
+crime:DeathPenalty a owl:Class ;
+    rdfs:label "Death Penalty"@en , "Peine de mort"@fr ;
+    rdfs:subClassOf crime:Penalty .
+
+crime:LifeImprisonment a owl:Class ;
+    rdfs:label "Life Imprisonment"@en , "Emprisonnement à vie"@fr ;
+    rdfs:subClassOf crime:Penalty .
+
+# ============================================
+# PROPRIÉTÉS
+# ============================================
+
+# Propriété : nombre de victimes
+crime:numberOfVictims a owl:DatatypeProperty ;
+    rdfs:label "number of victims"@en , "nombre de victimes"@fr ;
+    rdfs:domain crime:Criminal ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Le nombre total de victimes"@fr .
+
+# Propriété : date d'arrestation
+crime:dateApprehended a owl:DatatypeProperty ;
+    rdfs:label "date apprehended"@en , "date d'arrestation"@fr ;
+    rdfs:domain crime:Criminal ;
+    rdfs:range xsd:date .
+
+# Propriété : condamné pour
+crime:convictedOf a owl:ObjectProperty ;
+    rdfs:label "convicted of"@en , "condamné pour"@fr ;
+    rdfs:domain crime:Criminal ;
+    rdfs:range xsd:string .
+
+# Propriété : peine reçue
+crime:penalty a owl:ObjectProperty ;
+    rdfs:label "penalty"@en , "peine"@fr ;
+    rdfs:domain crime:Criminal ;
+    rdfs:range xsd:string .
+
+# Propriété : lieu de naissance
+crime:birthPlace a owl:ObjectProperty ;
+    rdfs:label "birth place"@en , "lieu de naissance"@fr ;
+    rdfs:domain foaf:Person ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf schema:birthPlace .
+
+# Propriété : lieu de décès
+crime:deathPlace a owl:ObjectProperty ;
+    rdfs:label "death place"@en , "lieu de décès"@fr ;
+    rdfs:domain foaf:Person ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf schema:deathPlace .
+
+# ============================================
+# RÈGLES D'INFÉRENCE (OWL)
+# ============================================
+
+# RÈGLE 1 : Si numberOfVictims >= 3, alors c'est un SerialKiller
+crime:SerialKiller owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+        crime:Criminal
+        [
+            a owl:Restriction ;
+            owl:onProperty crime:numberOfVictims ;
+            owl:someValuesFrom [
+                a rdfs:Datatype ;
+                owl:onDatatype xsd:integer ;
+                owl:withRestrictions (
+                    [ xsd:minInclusive 3 ]
+                )
+            ]
+        ]
+    )
+] .
+
+# RÈGLE 2 : Un SerialKiller est automatiquement un ViolentCriminal
+crime:SerialKiller rdfs:subClassOf crime:ViolentCriminal .
+
+# RÈGLE 3 : Tout Criminal doit avoir un nom
+crime:Criminal rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty foaf:name ;
+    owl:minCardinality 1
+] .
