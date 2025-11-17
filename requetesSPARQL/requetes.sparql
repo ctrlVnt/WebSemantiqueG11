@@ -311,3 +311,66 @@ WHERE {
 }
 GROUP BY ?densityRange
 ORDER BY ?densityRange
+
+
+# Requête liées avec les groupes 2 et 12 : Les monnaies dans le monde et les lauréats du prix Nobel
+
+PREFIX schema: <http://schema.org/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX ex: <http://example.org/currency/>
+PREFIX crime: <http://example.org/crime/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX schema1: <http://schema.org/>
+PREFIX place: <http://example.org/nobel/place/>
+
+SELECT 
+  ?pays
+  ?devise
+  ?symbole
+  (COUNT(DISTINCT ?criminel) AS ?nombreCriminelsEconomiques)
+  (COUNT(DISTINCT ?laureat) AS ?nombreLaureatsNobel)
+WHERE {
+  # Devises avec pays et symbole (common to both parts)
+  ?devise dbo:usedInCountry ?pays ;
+          schema:currencySymbol ?symbole .
+  
+  # Extraire le nom du pays du DBpedia URI
+  BIND(REPLACE(REPLACE(STR(?pays), "http://dbpedia.org/resource/", ""), "_", " ") AS ?nomPaysSimple)
+  
+  # Optional part for economic criminals
+  OPTIONAL {
+    ?criminel schema:birthPlace ?lieuNaissance ;
+              crime:conviction ?conviction .
+    
+    # Filtrer les crimes économiques
+    FILTER(
+      CONTAINS(LCASE(?conviction), "fraud") || 
+      CONTAINS(LCASE(?conviction), "theft") || 
+      CONTAINS(LCASE(?conviction), "corruption") ||
+      CONTAINS(LCASE(?conviction), "money") ||
+      CONTAINS(LCASE(?conviction), "economic")
+    )
+    
+    # Vérifier si le lieu de naissance contient le nom du pays
+    FILTER(CONTAINS(LCASE(STR(?lieuNaissance)), LCASE(?nomPaysSimple)))
+  }
+  
+  # Optional part for Nobel laureates
+  OPTIONAL {
+    ?award a schema1:Award ;
+           schema1:recipient ?laureat .
+    
+    ?laureat a foaf:Person ;
+             schema1:birthPlace ?birthPlace .
+    
+    # For Nobel dataset, check both the string representation and URI
+    FILTER(
+      CONTAINS(LCASE(STR(?birthPlace)), LCASE(?nomPaysSimple)) ||
+      (CONTAINS(STR(?birthPlace), "place:") && CONTAINS(LCASE(STR(?birthPlace)), LCASE(?nomPaysSimple)))
+    )
+  }
+  #FILTER (?nombreCriminelsEconomiques = 1)
+}
+GROUP BY ?pays ?devise ?symbole
+HAVING (?nombreCriminelsEconomiques > 0)
+ORDER BY DESC(?nombreCriminelsEconomiques)
